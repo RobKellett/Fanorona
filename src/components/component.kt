@@ -1,0 +1,3 @@
+package components
+
+trait Component {}
