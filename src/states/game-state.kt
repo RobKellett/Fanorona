@@ -9,4 +9,8 @@ abstract class GameState {
 
     public open fun update(deltaTime: Float): Unit = updateSubsystem.update(deltaTime)
     public open fun draw(deltaTime: Float, target: RenderTarget): Unit = graphicSubsystem.draw(deltaTime, target)
+    public open fun kill(): Unit {
+        updateSubsystem.kill()
+        graphicSubsystem.kill()
+    }
 }

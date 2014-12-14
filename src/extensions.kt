@@ -19,4 +19,4 @@ public fun Vector2i.toFloats(): Vector2f {
 }
 
 public val Vector2f.lengthSquared: Float get() = x * x + y * y
-public val Vector2f.length: Float get() = Math.sqrt(lengthSquared as Double) as Float
+public val Vector2f.length: Float get() = Math.sqrt(lengthSquared.toDouble()).toFloat()

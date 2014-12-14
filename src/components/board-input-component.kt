@@ -7,13 +7,16 @@ import org.jsfml.window.Mouse
 import org.jsfml.system.Vector2f
 import fanorona.rules.*
 import java.util.ArrayList
+import org.jsfml.window.Keyboard
 
-class BoardInputComponent(subsystem: UpdateSubsystem, private val view: View, private val window: RenderWindow, private val board: GameBoard) : UpdateComponent(subsystem) {
+class BoardInputComponent(subsystem: UpdateSubsystem, private val view: View, private val window: RenderWindow, private val board: GameBoard, private val actionCallback: (GameAction?) -> Unit) : UpdateComponent(subsystem) {
     public var activePiece: GamePiece? = null
         public get private set
 
-    public var targetTile: GameBoardTile? = null
+    public var targetActions: ArrayList<GameAction> = ArrayList()
         public get private set
+
+    public var active: Boolean = false;
 
     public var validActions: List<GameAction> = ArrayList()
 
@@ -22,9 +25,15 @@ class BoardInputComponent(subsystem: UpdateSubsystem, private val view: View, pr
     private var wasRightDown = false
 
     override fun update(deltaTime: Float) {
+        if (!active)
+            return;
+
         val cursorPos = window.mapPixelToCoords(Mouse.getPosition(window), view)
 
         val posMatchesCursor = { (pos: Position) -> pos.x == (cursorPos.x + 0.5f).toInt() && pos.y == (cursorPos.y + 0.5f).toInt() }
+
+        if (Keyboard.isKeyPressed(Keyboard.Key.ESCAPE))
+            actionCallback(null) // forfeit
 
         if (Mouse.isButtonPressed(Mouse.Button.LEFT)) {
             if (!wasLeftDown) {
@@ -32,8 +41,12 @@ class BoardInputComponent(subsystem: UpdateSubsystem, private val view: View, pr
                     if (activePiece != null)
                         activeSelected = true
                 }
-                else {
-                    // TODO: Do the move!
+                else if (targetActions.notEmpty) {
+                    // these "smart" casts are killing me
+                    actionCallback(if (Keyboard.isKeyPressed(Keyboard.Key.LSHIFT)) targetActions.last() else targetActions.first())
+                    activeSelected = false
+                    activePiece = null
+                    targetActions.clear()
                 }
             }
             wasLeftDown = true
@@ -43,7 +56,7 @@ class BoardInputComponent(subsystem: UpdateSubsystem, private val view: View, pr
 
         if (Mouse.isButtonPressed(Mouse.Button.RIGHT)) {
             if (!wasRightDown) {
-                targetTile = null
+                targetActions.clear()
                 activeSelected = false
             }
             wasRightDown = true
@@ -55,6 +68,6 @@ class BoardInputComponent(subsystem: UpdateSubsystem, private val view: View, pr
         if (!activeSelected)
             activePiece = (validActions firstOrNull { posMatchesCursor(it.piece.position) })?.piece
         else
-            targetTile = validActions filter { it.piece == activePiece } map { board.tiles[it.piece.position + it.action] } singleOrNull { posMatchesCursor(it.position) }
+            targetActions = (validActions filter { it.piece == activePiece && posMatchesCursor(it.piece.position + it.action) }).toArrayList()
     }
 }

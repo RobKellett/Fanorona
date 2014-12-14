@@ -27,7 +27,7 @@ data class Delta(public val x: Int, public val y: Int) {
 
         public val directions: Array<Delta> = array(NORTH, NORTHEAST, EAST, SOUTHEAST,
                                                     SOUTH, SOUTHWEST, WEST, NORTHWEST)
-        }
+    }
 
     public fun plus(other: Delta): Delta = Delta(x + other.x, y + other.y)
     public fun plus(other: Position): Position = Position(x + other.x, y + other.y)
@@ -133,7 +133,7 @@ class GameBoard(public val width: Int, public val height: Int) {
                 val forwardCapturePieces = ArrayList<GamePiece>()
                 var forwardLookup = destination + direction
                 while (inBounds(forwardLookup)) {
-                    val forwardPiece = actionTiles.singleOrNull { it.position == forwardLookup && it.piece != null }?.piece
+                    val forwardPiece = tiles.values().singleOrNull { it.position == forwardLookup && it.piece != null }?.piece
 
                     if (forwardPiece?.owner != !piece.owner)
                         break;
@@ -148,7 +148,7 @@ class GameBoard(public val width: Int, public val height: Int) {
                 val backwardCapturePieces = ArrayList<GamePiece>()
                 var backwardLookup = piece.position - direction
                 while (inBounds(backwardLookup)) {
-                    val backwardPiece = actionTiles.singleOrNull { it.position == backwardLookup && it.piece != null }?.piece
+                    val backwardPiece = tiles.values().singleOrNull { it.position == backwardLookup && it.piece != null }?.piece
 
                     if (backwardPiece?.owner != !piece.owner)
                         break;
@@ -164,6 +164,10 @@ class GameBoard(public val width: Int, public val height: Int) {
                     result.add(GameAction(piece, direction, ArrayList<GamePiece>()))
             }
         }
+
+        // filter out the paiko moves if there are any capturing moves
+        if (result any { it.casualties.notEmpty })
+            result removeIf { it.casualties.empty }
 
         return result;
     }

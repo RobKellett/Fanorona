@@ -7,11 +7,18 @@ import org.jsfml.window.event.Event
 
 import java.util.Date
 
-import states.GameplayState
 import org.jsfml.system.Vector2i
+import states.*
 
 public val screenWidth: Int = 256
 public val screenHeight: Int = 240
+
+private var gameState: GameState? = null;
+
+public fun changeState(newState: GameState) {
+    gameState!!.kill()
+    gameState = newState
+}
 
 fun main(args: Array<String>) {
     SFMLNative.loadNativeLibraries()
@@ -21,10 +28,10 @@ fun main(args: Array<String>) {
 
     utilities.initialize()
 
-    var gameState = GameplayState(5, 5, window)
-
     val targetTexture = RenderTexture()
     targetTexture.create(screenWidth, screenHeight)
+
+    gameState = MainMenuState(window, targetTexture.getDefaultView())
 
     var lastTime = Date()
     while (window.isOpen()) {
@@ -41,11 +48,9 @@ fun main(args: Array<String>) {
         val now = Date()
         val deltaTime = (now.getTime() - lastTime.getTime()) / 1000f
 
-        gameState.update(deltaTime)
+        gameState!!.update(deltaTime)
 
-        targetTexture.clear(Color.WHITE)
-        gameState.draw(deltaTime, targetTexture)
-        utilities.drawText("${Math.round(1f / deltaTime)} FPS", Vector2i(4, 0), targetTexture)
+        gameState!!.draw(deltaTime, targetTexture)
         targetTexture.display()
 
         val sprite = Sprite(targetTexture.getTexture())

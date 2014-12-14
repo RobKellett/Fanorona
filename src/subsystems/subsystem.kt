@@ -22,4 +22,11 @@ abstract class Subsystem<in T : Component> {
         componentsToRemove.clear()
         componentsToAdd.clear()
     }
+
+    public fun kill(): Unit {
+        componentsToAdd.clear()
+        //componentsToRemove.addAll(components)
+        componentsToRemove.clear()
+        components.clear()
+    }
 }
